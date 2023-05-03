@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Briefcase-Version: 0.3.14
+Name: weatherapi
+Formal-Name: Weather api
+App-ID: com.example.weatherapi
+Version: 0.0.1
+Home-page: https://example.com/weatherapi
+Download-URL: https://example.com/weatherapi
+Author: Yichen Yang
+Author-email: yichen@example.com
+Summary: weather api
