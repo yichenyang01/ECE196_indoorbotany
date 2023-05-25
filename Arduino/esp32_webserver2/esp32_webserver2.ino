@@ -23,7 +23,7 @@ int temperature = 70;
 int sunlight = 20;
 int moisture = 90;
 
-void setup() {
+void setupServer() {
   Serial.begin(115200);
 
   // Connect to Wi-Fi network with SSID and password
@@ -42,19 +42,19 @@ void setup() {
   server.begin();
 }
 
-void loop(){
+void serverHost(){
   WiFiClient client = server.available();   // Listen for incoming clients
   
   if (client) {                             // If a new client connects,
     currentTime = millis();
     previousTime = currentTime;
-    Serial.println("New Client.");          // print a message out in the serial port
+    //Serial.println("New Client.");          // print a message out in the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
     while (client.connected() && currentTime - previousTime <= timeoutTime) {  // loop while the client's connected
       currentTime = millis();
       if (client.available()) {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
-        Serial.write(c);                    // print it out the serial monitor
+        //Serial.write(c);                    // print it out the serial monitor
         header += c;
         if (c == '\n') {                    // if the byte is a newline character
           if (currentLine.length() == 0) {
@@ -92,7 +92,7 @@ void loop(){
     header = "";
     // Close the connection
     client.stop();
-    Serial.println("Client disconnected.");
-    Serial.println("");
+//    Serial.println("Client disconnected.");
+//    Serial.println("");
   }
 }
