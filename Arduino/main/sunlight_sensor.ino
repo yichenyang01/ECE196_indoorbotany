@@ -1,7 +1,0 @@
-void setupSunlight(){
-  
-}
-
-void getSunlight(){
-  
-}
