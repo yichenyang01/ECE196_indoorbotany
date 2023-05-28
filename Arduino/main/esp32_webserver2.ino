@@ -11,21 +11,12 @@ WiFiServer server(80);
 // Variable to store the HTTP request
 String header;
 
-// Current time
 unsigned long currentTime = millis();
-// Previous time
 unsigned long previousTime = 0; 
-// Define timeout time in milliseconds (example: 2000ms = 2s)
 const long timeoutTime = 2000;
-
-int humidity = 100;
-int temperature = 70;
-int sunlight = 20;
-int moisture = 90;
 
 void setupServer() {
   Serial.begin(115200);
-
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
