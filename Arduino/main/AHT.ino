@@ -12,9 +12,9 @@ void setupAHT() {
   Serial.println("AHT10 or AHT20 found");
 }
 
-void getHumidity() {
+void getHumidTemp() {
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
   temperature = temp.temperature;
-  humidity = humidity.relative_humidity
+  humid = humidity.relative_humidity;
 }

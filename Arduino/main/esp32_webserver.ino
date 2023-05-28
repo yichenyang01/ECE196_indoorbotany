@@ -61,7 +61,7 @@ void serverHost(){
             
             // Web Page Heading
             client.println("<body><h1>ESP32 Web Server</h1>");
-            client.println("<p>Humidity - " + String(humidity) + "</p>");
+            client.println("<p>Humidity - " + String(humid) + "</p>");
             client.println("<p>Temperature - " + String(temperature) + "</p>");
             client.println("<p>Sunlight - " + String(sunlight) + "</p>");
             client.println("<p>Moisture - " + String(moisture) + "</p>");      

@@ -1,14 +1,16 @@
-int humidity;
+int humid;
 int temperature;
 int sunlight;
 int moisture;
 
 void setup(){
   setupServer();
-  setupAHT;
+  setupAHT();
+  setupMois();
 }
 
 void loop(){
-  getHumidity();
+  getHumidTemp();
+  getMoisture();
   serverHost();
 }
