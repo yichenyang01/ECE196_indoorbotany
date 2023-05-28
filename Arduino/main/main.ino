@@ -5,8 +5,10 @@ int moisture;
 
 void setup(){
   setupServer();
+  setupAHT;
 }
 
 void loop(){
+  getHumidity();
   serverHost();
 }
