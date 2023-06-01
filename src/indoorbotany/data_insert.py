@@ -4,7 +4,7 @@ if __name__ == '__main__':
     
 
     #Connect to the database
-    db = mysql.connect(host="sql9.freesqldatabase.com", user="sql9617434", password="x4E41uqNky", database="sql9617434")
+    db = mysql.connect(host="sql9.freesqldatabase.com", user="sql9622826", password="hQNVN4TgY4", database="sql9622826")
     cursor = db.cursor()
     print('Connected')
 
