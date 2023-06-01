@@ -1,19 +1,95 @@
 import mysql.connector as mysql
 
 if __name__ == '__main__':
-    db = mysql.connect(host="sql9.freesqldatabase.com", user="sql9617434", password="x4E41uqNky", database="sql9617434")
+    
 
+    #Connect to the database
+    db = mysql.connect(host="sql9.freesqldatabase.com", user="sql9617434", password="x4E41uqNky", database="sql9617434")
     cursor = db.cursor()
     print('Connected')
-    cursor.execute("""CREATE TABLE quiz (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      question VARCHAR(255) NOT NULL,
-      option1 VARCHAR(255) NOT NULL,
-      option2 VARCHAR(255) NOT NULL,
-      option3 VARCHAR(255) NOT NULL,
-      correct_answer VARCHAR(255) NOT NULL
-    );""")
 
+
+
+    #Drop existing table
+    cursor.execute('DROP TABLE if EXISTS plants;')
+
+    #Create the table for the tutorial content
+    try:
+      cursor.execute("""
+      CREATE TABLE plants (
+        id          INT  AUTO_INCREMENT  PRIMARY KEY,
+        plant       VARCHAR(255)  NOT NULL
+      );
+    """)
+    except RuntimeError as err:
+      print('runtime error: {0}'.format(err))
+
+    #Insert values into the table
+    plants = []
+    query = ("INSERT INTO plants (plant) VALUES (%s)")
+    cursor.executemany(query, plants)
+
+
+
+    #We dont drop because we don't mind having the extra data
+    #Create the table for the tutorial content
+    try:
+      cursor.execute("""
+      CREATE TABLE plant_data (
+        id        INT  AUTO_INCREMENT  PRIMARY KEY,
+        data      INT  NOT NULL
+      );
+    """)
+    except RuntimeError as err:
+      print('runtime error: {0}'.format(err))
+
+    #Insert values into the table
+    data = []
+    query = ("INSERT INTO plant_data (data) VALUES (%s)")
+    cursor.executemany(query, data)
+
+
+
+    #Drop existing table
+    cursor.execute('DROP TABLE if EXISTS tutorials;')
+
+    #Create the table for the tutorial content
+    try:
+      cursor.execute("""
+      CREATE TABLE tutorials (
+        id          INT  AUTO_INCREMENT  PRIMARY KEY,
+        tutorial    VARHCAR()  NOT NULL
+      );
+    """)
+    except RuntimeError as err:
+      print('runtime error: {0}'.format(err))
+
+    #Insert values into the table
+    tutorials = []
+    query = ("INSERT INTO tutorials (tutorial) VALUES (%s)")
+    cursor.executemany(query, tutorials)
+
+
+
+    #Drop existing table
+    cursor.execute('DROP TABLE if EXISTS quiz;')
+
+    #Create the table for the quiz content
+    try:
+      cursor.execute("""
+      CREATE TABLE quiz (
+        id              INT  AUTO_INCREMENT  PRIMARY KEY,
+        question        VARCHAR(255)  NOT NULL,
+        option1         VARCHAR(255)  NOT NULL,
+        option2         VARCHAR(255)  NOT NULL,
+        option3         VARCHAR(255)  NOT NULL,
+        correct_answer  VARCHAR(255)  NOT NULL
+      );
+    """)
+    except RuntimeError as err:
+      print('runtime error: {0}'.format(err))
+
+    #Insert values into the table
     questions = [
         ("What is the ideal temperature range for most indoor plants?",
          "40-50°F (4-10°C)", "60-70°F (15-21°C)", "80-90°F (27-32°C)", "B"),
@@ -49,6 +125,9 @@ if __name__ == '__main__':
     query = ("INSERT INTO quiz (question, option1, option2, option3, correct_answer) VALUES (%s, %s, %s, %s, %s)")
     cursor.executemany(query, questions)
 
+
+
+    #Commit changes and disconnect from database
     db.commit()
     print('Done uploading')
     cursor.close()
