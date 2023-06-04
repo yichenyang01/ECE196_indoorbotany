@@ -73,192 +73,209 @@ void setupLCD() {
 
 unsigned long lastFrame = millis();
 
-void updateLCD() {
-  while((millis() - lastFrame) < 2000);
-    lastFrame = millis();
-    //Serial.print("Loop lastFrame Time(millis()):     "); Serial.println(lastFrame);
-
-  //Serial.print("Temperature(Celsius and Fahrenheit):     ");Serial.print((int) t);Serial.print("   "); Serial.println((int) f);
-  
-  // Check if any reads failed and exit early (to try again).
-  if (isnan(humid) || isnan(temperature)) {
-    Serial.println(F("Failed to read from DHT sensor!"));
-    return;
-  } 
-  
-  mH2 = mH;  
-  mH = humid;
-
-  tft.setTextSize(2);
-  tft.setTextColor(WHITE);
-  tft.setCursor(20, 90);
-  tft.print(mH2);
-
-  tft.setTextSize(2);
-  tft.setTextColor(BLACK);  
-  tft.setCursor(20, 90);
-  tft.print(mH);
-  
-  temp_Update(temperature);    
-  
-  myMeter(mH + 220);
+void updateLCD(){
+  updateText();
 }
 
-//*****************************Temperature Setup Function Code***************************
-void myTemperatureSetup(){
-
-  //**********Title Bar with Temperature Code********
-  tft.setTextSize(2);
-  tft.setTextColor(BLACK);
-  tft.setCursor(25, 130);
-  tft.print("Temperature ");
-  tft.setCursor(170, 130);
-  tft.print(my_Ntemp);
-  tft.print((char)247);
-  tft.print("C");
-  
-  //*********Temperature Gauge Code********* 
-  tft.fillRoundRect(tft.width()-135, tft.height()-170, 30, 150,20, BLACK);
-  tft.fillRoundRect(tft.width()-132, tft.height()-167, 24, 150,20, WHITE);
-  tft.fillCircle(tft.width()-120, tft.height()-30, 20, BLACK);
-  tft.fillCircle(tft.width()-120, tft.height()-30, 17, WHITE);
-  tft.fillRect(tft.width()-132, tft.height()-50, 24, 30,WHITE);
-  tft.fillCircle(tft.width()-120, tft.height()-30, 12, RED);
-  tft.fillRect(tft.width()-123, tft.height()-50, 6, 20,RED);
-
-  //*********Temperature Gauge Lines Code**********
-  int Line_Height = 270;
-  for(int a = 0; a < 5; a++ ){
-  tft.drawFastHLine(tft.width()-105,Line_Height,10,BLACK);
-  Line_Height = Line_Height - 25;
-  }
-
-  int sLine_Height = 270;
-  for(int b = 0; b < 20; b++ ){
-  tft.drawFastHLine(tft.width()-105,sLine_Height,5,BLACK);
-  sLine_Height = sLine_Height - 5;
-  }
-
-  //**********Temperature Gauge Numbers Code**********
-  tft.setTextSize(1);
-  tft.setTextColor(BLACK);
-  
-  int number_Height = 267;  //was 147
-  int gNum = 0;
-  for(int c = 0; c < 5; c++ ){
-    tft.setCursor(tft.width()-92, number_Height); //was 225
-    tft.print(gNum);
-    tft.print((char)247);
-    tft.print("C");
-  number_Height = number_Height - 25;
-  gNum = gNum + 25;
-  }
+void updateText(){
+  tft.fillScreen(WHITE);
+  tft.setCursor(0, 0);
+  tft.setTextColor(BLACK);  tft.setTextSize(1);
+  tft.println("Humidity: " + String(humid));
+  tft.setTextColor(BLACK);  tft.setTextSize(1);
+  tft.println("Temperature: " + String(temperature));
+  tft.setTextColor(BLACK);  tft.setTextSize(1);
+  tft.println("Moisture: " + String(moisture));
+  tft.setTextColor(BLACK);  tft.setTextSize(1);
+  tft.println("Sunlight: " + String(sunlight));
 }
 
-//***********************Dial Gauge(Humidity) Setup Function Code************************
-  
-void myHumiditySetup(){
-    tft.fillScreen(YELLOW);
-
-    tft.fillRect(0, 0, 240, 126, DARK_GREY);
-    tft.fillRect(5, 3, 230, 119, WHITE);
-  
-    tft.setTextSize(2);
-    tft.setTextColor(BLACK);
-    tft.setCursor(200, 90);
-    tft.print("H%");
-    tft.setCursor(20, 90);
-    tft.print(mH);
-
-    tft.drawArc(120, 140, 115, 99, 220, 320, BLACK);
-    tft.fillArc(120, 140, 115, 100, 295, 319, YELLOW);
-    tft.fillArc(120, 140, 115, 100, 270, 295, GREEN);
-    tft.fillArc(120, 140, 115, 100, 220, 270, WHITE);
-    
-    tft.setTextSize(1);
-    tft.setTextColor(BLACK);
-    tft.setCursor(25, 57);
-    tft.print("0");
-    tft.setCursor(206, 56);
-    tft.print("100");
-    tft.setCursor(65, 25);
-    tft.print("25");
-    tft.setCursor(165, 25);
-    tft.print("75");
-    tft.setCursor(115, 15);
-    tft.print("50");
-  
-    for (int a = 220; a < 320; a = a + 25){
-      tft.fillArc(120, 140, 115, 100, a, a, BLACK);
-    }
-  
-    for (int b = 225; b <= 315; b = b + 5){
-      tft.fillArc(120, 140, 110, 100, b, b, BLACK);
-    }
-}
-
-//***************************Dial Gauge Pointer Update Code***************************
-
-void myMeter(int hNeedle){
-//int redNeedle = 220, greyNeedle = 220,checkNeedle = 220, hNeedle = 220;
-  checkNeedle = redNeedle; 
-  if(hNeedle > redNeedle){
-    redNeedle = hNeedle;
-    for(int uRN = checkNeedle; uRN <= redNeedle; uRN++){
-      tft.fillArc(120, 140, 95, 20, uRN - 1, uRN - 1, WHITE);
-      tft.fillArc(120, 140, 95, 20, uRN, uRN, RED);
-      tft.fillRect(95, 122, 48, 4, DARK_GREY);
-      tft.fillRect(99, 126, 42, 3, YELLOW);
-      delay(10);
-   }    
- }else if(hNeedle < redNeedle){
-    redNeedle = hNeedle;
-    for(int dRN = checkNeedle; dRN >= redNeedle; dRN--){
-      tft.fillArc(120, 140, 95, 20, dRN + 1, dRN + 1, WHITE);
-      tft.fillArc(120, 140, 95, 20, dRN, dRN, RED);
-      tft.fillRect(95, 122, 48, 4, DARK_GREY);
-      tft.fillRect(99, 126, 42, 3, YELLOW);
-      delay(10);
-   } 
- }else{};
-
-}
-
-// ***************************Temperature Update Function Start***********************
-
-//int oBlock_H = 50;
-void temp_Update(int my_Ntemp){
-
-  int nBlock_H;
-  
-  if(my_Ntemp != my_Otemp){
-    tft.setTextSize(2);
-    tft.setTextColor(YELLOW);
-    tft.setCursor(170, 130);
-    tft.print(my_Otemp);
-    tft.print((char)247);
-    tft.print("C");
-    
-    my_Otemp = my_Ntemp;
-    tft.setTextSize(2);
-    tft.setTextColor(BLACK);
-    tft.setCursor(170, 130);
-    tft.print(my_Ntemp);
-    tft.print((char)247);
-    tft.print("C"); 
-
-    nBlock_H = map(my_Ntemp, 0, 100, 50, 150);
-    Serial.print("nBlock: ");Serial.print(nBlock_H);Serial.print("     my_Ntemp: ");Serial.println(my_Ntemp);
- 
-    tft.fillRect(tft.width()-123, tft.height()- oBlock_H, 6, oBlock_H - 50,WHITE);
-    tft.fillRect(tft.width()-123, tft.height()- nBlock_H, 6, nBlock_H - 50,RED);
-    oBlock_H = nBlock_H;
-    
-    //To be commented out, or deleted
-    Serial.print("Height: ");
-    Serial.print(nBlock_H);
-    Serial.print("  Temperature: ");
-    Serial.print(my_Ntemp);
-  }
- 
-}
+//void updateLCD() {
+//  while((millis() - lastFrame) < 2000);
+//    lastFrame = millis();
+//    //Serial.print("Loop lastFrame Time(millis()):     "); Serial.println(lastFrame);
+//
+//  //Serial.print("Temperature(Celsius and Fahrenheit):     ");Serial.print((int) t);Serial.print("   "); Serial.println((int) f);
+//  
+//  // Check if any reads failed and exit early (to try again).
+//  if (isnan(humid) || isnan(temperature)) {
+//    Serial.println(F("Failed to read from DHT sensor!"));
+//    return;
+//  } 
+//  
+//  mH2 = mH;  
+//  mH = humid;
+//
+//  tft.setTextSize(2);
+//  tft.setTextColor(WHITE);
+//  tft.setCursor(20, 90);
+//  tft.print(mH2);
+//
+//  tft.setTextSize(2);
+//  tft.setTextColor(BLACK);  
+//  tft.setCursor(20, 90);
+//  tft.print(mH);
+//  
+//  temp_Update(temperature);    
+//  
+//  myMeter(mH + 220);
+//}
+//
+////*****************************Temperature Setup Function Code***************************
+//void myTemperatureSetup(){
+//
+//  //**********Title Bar with Temperature Code********
+//  tft.setTextSize(2);
+//  tft.setTextColor(BLACK);
+//  tft.setCursor(25, 130);
+//  tft.print("Temperature ");
+//  tft.setCursor(170, 130);
+//  tft.print(my_Ntemp);
+//  tft.print((char)247);
+//  tft.print("C");
+//  
+//  //*********Temperature Gauge Code********* 
+//  tft.fillRoundRect(tft.width()-135, tft.height()-170, 30, 150,20, BLACK);
+//  tft.fillRoundRect(tft.width()-132, tft.height()-167, 24, 150,20, WHITE);
+//  tft.fillCircle(tft.width()-120, tft.height()-30, 20, BLACK);
+//  tft.fillCircle(tft.width()-120, tft.height()-30, 17, WHITE);
+//  tft.fillRect(tft.width()-132, tft.height()-50, 24, 30,WHITE);
+//  tft.fillCircle(tft.width()-120, tft.height()-30, 12, RED);
+//  tft.fillRect(tft.width()-123, tft.height()-50, 6, 20,RED);
+//
+//  //*********Temperature Gauge Lines Code**********
+//  int Line_Height = 270;
+//  for(int a = 0; a < 5; a++ ){
+//  tft.drawFastHLine(tft.width()-105,Line_Height,10,BLACK);
+//  Line_Height = Line_Height - 25;
+//  }
+//
+//  int sLine_Height = 270;
+//  for(int b = 0; b < 20; b++ ){
+//  tft.drawFastHLine(tft.width()-105,sLine_Height,5,BLACK);
+//  sLine_Height = sLine_Height - 5;
+//  }
+//
+//  //**********Temperature Gauge Numbers Code**********
+//  tft.setTextSize(1);
+//  tft.setTextColor(BLACK);
+//  
+//  int number_Height = 267;  //was 147
+//  int gNum = 0;
+//  for(int c = 0; c < 5; c++ ){
+//    tft.setCursor(tft.width()-92, number_Height); //was 225
+//    tft.print(gNum);
+//    tft.print((char)247);
+//    tft.print("C");
+//  number_Height = number_Height - 25;
+//  gNum = gNum + 25;
+//  }
+//}
+//
+////***********************Dial Gauge(Humidity) Setup Function Code************************
+//  
+//void myHumiditySetup(){
+//    tft.fillScreen(YELLOW);
+//
+//    tft.fillRect(0, 0, 240, 126, DARK_GREY);
+//    tft.fillRect(5, 3, 230, 119, WHITE);
+//  
+//    tft.setTextSize(2);
+//    tft.setTextColor(BLACK);
+//    tft.setCursor(200, 90);
+//    tft.print("H%");
+//    tft.setCursor(20, 90);
+//    tft.print(mH);
+//
+//    tft.drawArc(120, 140, 115, 99, 220, 320, BLACK);
+//    tft.fillArc(120, 140, 115, 100, 295, 319, YELLOW);
+//    tft.fillArc(120, 140, 115, 100, 270, 295, GREEN);
+//    tft.fillArc(120, 140, 115, 100, 220, 270, WHITE);
+//    
+//    tft.setTextSize(1);
+//    tft.setTextColor(BLACK);
+//    tft.setCursor(25, 57);
+//    tft.print("0");
+//    tft.setCursor(206, 56);
+//    tft.print("100");
+//    tft.setCursor(65, 25);
+//    tft.print("25");
+//    tft.setCursor(165, 25);
+//    tft.print("75");
+//    tft.setCursor(115, 15);
+//    tft.print("50");
+//  
+//    for (int a = 220; a < 320; a = a + 25){
+//      tft.fillArc(120, 140, 115, 100, a, a, BLACK);
+//    }
+//  
+//    for (int b = 225; b <= 315; b = b + 5){
+//      tft.fillArc(120, 140, 110, 100, b, b, BLACK);
+//    }
+//}
+//
+////***************************Dial Gauge Pointer Update Code***************************
+//
+//void myMeter(int hNeedle){
+////int redNeedle = 220, greyNeedle = 220,checkNeedle = 220, hNeedle = 220;
+//  checkNeedle = redNeedle; 
+//  if(hNeedle > redNeedle){
+//    redNeedle = hNeedle;
+//    for(int uRN = checkNeedle; uRN <= redNeedle; uRN++){
+//      tft.fillArc(120, 140, 95, 20, uRN - 1, uRN - 1, WHITE);
+//      tft.fillArc(120, 140, 95, 20, uRN, uRN, RED);
+//      tft.fillRect(95, 122, 48, 4, DARK_GREY);
+//      tft.fillRect(99, 126, 42, 3, YELLOW);
+//      delay(10);
+//   }    
+// }else if(hNeedle < redNeedle){
+//    redNeedle = hNeedle;
+//    for(int dRN = checkNeedle; dRN >= redNeedle; dRN--){
+//      tft.fillArc(120, 140, 95, 20, dRN + 1, dRN + 1, WHITE);
+//      tft.fillArc(120, 140, 95, 20, dRN, dRN, RED);
+//      tft.fillRect(95, 122, 48, 4, DARK_GREY);
+//      tft.fillRect(99, 126, 42, 3, YELLOW);
+//      delay(10);
+//   } 
+// }else{};
+//
+//}
+//
+//// ***************************Temperature Update Function Start***********************
+//
+////int oBlock_H = 50;
+//void temp_Update(int my_Ntemp){
+//
+//  int nBlock_H;
+//  
+//  if(my_Ntemp != my_Otemp){
+//    tft.setTextSize(2);
+//    tft.setTextColor(YELLOW);
+//    tft.setCursor(170, 130);
+//    tft.print(my_Otemp);
+//    tft.print((char)247);
+//    tft.print("C");
+//    
+//    my_Otemp = my_Ntemp;
+//    tft.setTextSize(2);
+//    tft.setTextColor(BLACK);
+//    tft.setCursor(170, 130);
+//    tft.print(my_Ntemp);
+//    tft.print((char)247);
+//    tft.print("C"); 
+//
+//    nBlock_H = map(my_Ntemp, 0, 100, 50, 150);
+//    Serial.print("nBlock: ");Serial.print(nBlock_H);Serial.print("     my_Ntemp: ");Serial.println(my_Ntemp);
+// 
+//    tft.fillRect(tft.width()-123, tft.height()- oBlock_H, 6, oBlock_H - 50,WHITE);
+//    tft.fillRect(tft.width()-123, tft.height()- nBlock_H, 6, nBlock_H - 50,RED);
+//    oBlock_H = nBlock_H;
+//    
+//    //To be commented out, or deleted
+//    Serial.print("Height: ");
+//    Serial.print(nBlock_H);
+//    Serial.print("  Temperature: ");
+//    Serial.print(my_Ntemp);
+//  }
+// 
+//}
