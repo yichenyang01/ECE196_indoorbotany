@@ -3,6 +3,7 @@
 Adafruit_AHTX0 aht;
 
 void setupAHT() {
+  Wire.begin(0,4);
   Serial.begin(115200);
   Serial.println("Adafruit AHT10/AHT20 demo!");
   if (! aht.begin()) {

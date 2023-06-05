@@ -8,7 +8,7 @@ void setup(){
   
   setupAHT();
   setupMois();
-  setupSunlight();
+  //setupSunlight();
   
   setupLCD();
 }
@@ -16,7 +16,8 @@ void setup(){
 void loop(){
   getHumidTemp();
   getMoisture();
-  getSunlight();
+  //getSunlight();
   serverHost();
   updateLCD();
+  
 }

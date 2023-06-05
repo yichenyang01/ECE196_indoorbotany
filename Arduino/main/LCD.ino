@@ -1,16 +1,16 @@
 #include "SPI.h"
 #include <Arduino_GFX_Library.h>
 
-#include "DHT.h"
+//#include "DHT.h"
 #define DHTPIN 33     // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT11   // DHT 11
 
-#define TFT_DC 2 //9
-#define TFT_CS 15 //10
-#define TFT_RST 4 //8
+#define TFT_DC 27 //9
+#define TFT_CS 12 //10
+#define TFT_RST 14 //8
 
-#define TFT_SCK    18
-#define TFT_MOSI   23
+#define TFT_SCK    25
+#define TFT_MOSI   26
 #define TFT_MISO   19
 
 //Define Chip Select Pins, and Rotation
@@ -78,16 +78,19 @@ void updateLCD(){
 }
 
 void updateText(){
-  tft.fillScreen(WHITE);
-  tft.setCursor(0, 0);
-  tft.setTextColor(BLACK);  tft.setTextSize(1);
-  tft.println("Humidity: " + String(humid));
-  tft.setTextColor(BLACK);  tft.setTextSize(1);
-  tft.println("Temperature: " + String(temperature));
-  tft.setTextColor(BLACK);  tft.setTextSize(1);
-  tft.println("Moisture: " + String(moisture));
-  tft.setTextColor(BLACK);  tft.setTextSize(1);
-  tft.println("Sunlight: " + String(sunlight));
+  if (millis() - lastFrame > 2000){
+    tft.fillScreen(WHITE);
+    tft.setCursor(0, 0);
+    tft.setTextColor(BLACK);  tft.setTextSize(2.5);
+    tft.println("Humidity: " + String(humid));
+    tft.setTextColor(BLACK);  tft.setTextSize(2.5);
+    tft.println("Temperature: " + String(temperature));
+    tft.setTextColor(BLACK);  tft.setTextSize(2.5);
+    tft.println("Moisture: " + String(moisture));
+    tft.setTextColor(BLACK);  tft.setTextSize(2.5);
+    tft.println("Sunlight: " + String(sunlight));
+    lastFrame = millis();
+  }
 }
 
 //void updateLCD() {
