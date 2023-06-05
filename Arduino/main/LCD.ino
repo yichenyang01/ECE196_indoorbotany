@@ -110,6 +110,7 @@ void updateText(){
     tft.drawRoundRect(0, 120, 120, 30, 5, BLACK);
     if (moisture_meter > 50){
       tft.fillRoundRect(5, 122, moisture_meter, 26, 5, GREEN);
+    }
     else{
       tft.fillRoundRect(5, 122, moisture_meter, 26, 5, YELLOW);
     }

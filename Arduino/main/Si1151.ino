@@ -25,4 +25,6 @@ void setupSunlight()
 void getSunlight()
 {
     sunlight = si1151.ReadHalfWord_VISIBLE();
+    Serial.println("sunlight: ");
+    Serial.println(sunlight);
 }
