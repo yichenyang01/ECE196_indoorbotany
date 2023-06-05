@@ -1,4 +1,8 @@
 #include "Si115X.h"
+#include <Wire.h>
+#include <Arduino.h>
+#define SDA 18
+#define SCL 19
 
 Si115X si1151 = Si115X();
 
@@ -9,7 +13,7 @@ void setupSunlight()
 {
     uint8_t conf[4];
 
-    Wire.begin();
+    Wire.begin(SDA, SCL);
     if (!si1151.Begin())
         Serial.println("Si1151 is not ready!");
     else
