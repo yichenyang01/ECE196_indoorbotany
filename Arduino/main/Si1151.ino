@@ -11,6 +11,7 @@ Si115X si1151 = Si115X();
  */
 void setupSunlight()
 {
+    Serial.begin(115200);
     uint8_t conf[4];
 
     Wire.begin(SDA, SCL);
@@ -25,6 +26,6 @@ void setupSunlight()
 void getSunlight()
 {
     sunlight = si1151.ReadHalfWord_VISIBLE();
-    Serial.println("sunlight: ");
+    Serial.print("Sunlight: ");
     Serial.println(sunlight);
 }

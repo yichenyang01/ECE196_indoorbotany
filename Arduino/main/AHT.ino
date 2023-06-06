@@ -18,4 +18,9 @@ void getHumidTemp() {
   aht.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
   temperature = temp.temperature;
   humid = humidity.relative_humidity;
+  Serial.print("Temperature: ");
+  Serial.print(temperature);
+  Serial.println("degrees C" );
+  Serial.print("Relative Humidity: ");
+  Serial.println(humid);
 }
