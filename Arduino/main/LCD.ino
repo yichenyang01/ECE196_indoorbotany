@@ -81,48 +81,48 @@ void updateText(){
   if(millis() - lastFrame > 2000){
     int temperature_meter = map(temperature, -40, 80, 0, 100);
     int moisture_meter = map(moisture, 0, 4095, 0, 100);
-    int sunlight_meter = map(sunlight, 0, 2000, 0, 100);
+    int sunlight_meter = map(sunlight, 0, 30000, 0, 100);
   
     tft.fillScreen(WHITE);
     tft.setCursor(0, 0);
     tft.setTextColor(BLACK);  tft.setTextSize(2);
     tft.println("Humidity: " + String(humid));
-    tft.drawRoundRect(0, 30, 120, 30, 5, BLACK);
+    tft.drawRoundRect(0, 25, 105, 30, 5, BLACK);
     if (humid > 50){
-      tft.fillRoundRect(5, 32, humid, 26, 5, GREEN);
+      tft.fillRoundRect(5, 27, humid, 26, 5, GREEN);
     }else{
-      tft.fillRoundRect(5, 32, humid, 26, 5, YELLOW);
+      tft.fillRoundRect(5, 27, humid, 26, 5, YELLOW);
     }
     
     tft.setCursor(0, 60);
     tft.setTextColor(BLACK);  tft.setTextSize(2);
     tft.println("Temperature: " + String(temperature));
-    tft.drawRoundRect(0, 90, 120, 30, 5, BLACK);
+    tft.drawRoundRect(0, 85, 105, 30, 5, BLACK);
     if (temperature_meter > 50){
-      tft.fillRoundRect(5, 92, temperature_meter, 26, 5, GREEN);
+      tft.fillRoundRect(5, 87, temperature_meter, 26, 5, GREEN);
     }else{
-      tft.fillRoundRect(5, 92, temperature_meter, 26, 5, YELLOW);
+      tft.fillRoundRect(5, 87, temperature_meter, 26, 5, YELLOW);
     }
     
     tft.setCursor(0, 120);
     tft.setTextColor(BLACK);  tft.setTextSize(2);
     tft.println("Moisture: " + String(moisture));
-    tft.drawRoundRect(0, 120, 120, 30, 5, BLACK);
+    tft.drawRoundRect(0, 145, 105, 30, 5, BLACK);
     if (moisture_meter > 50){
-      tft.fillRoundRect(5, 122, moisture_meter, 26, 5, GREEN);
+      tft.fillRoundRect(5, 147, moisture_meter, 26, 5, GREEN);
     }
     else{
-      tft.fillRoundRect(5, 122, moisture_meter, 26, 5, YELLOW);
+      tft.fillRoundRect(5, 147, moisture_meter, 26, 5, YELLOW);
     }
     
     tft.setCursor(0, 180);
     tft.setTextColor(BLACK);  tft.setTextSize(2);
     tft.println("Sunlight: " + String(sunlight));
-    tft.drawRoundRect(0, 180, 120, 30, 5, BLACK);
+    tft.drawRoundRect(0, 205, 105, 30, 5, BLACK);
     if (sunlight_meter > 50){
-      tft.fillRoundRect(5, 182, sunlight_meter, 26, 5, GREEN);
+      tft.fillRoundRect(5, 207, sunlight_meter, 26, 5, GREEN);
     }else{
-      tft.fillRoundRect(5, 182, sunlight_meter, 26, 5, YELLOW);
+      tft.fillRoundRect(5, 207, sunlight_meter, 26, 5, YELLOW);
     }
     
     lastFrame = millis();
