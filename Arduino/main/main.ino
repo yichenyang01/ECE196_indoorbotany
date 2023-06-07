@@ -5,19 +5,19 @@ int moisture;
 int timeActive = 0;
 
 void setup(){
-  //setupServer();
+  setupServer();
   setupAHT();
-  //setupMois();
+  setupMois();
   setupSunlight();
-  //setupLCD();
+  setupLCD();
 
 }
 
 void loop(){
   getHumidTemp();
-  //getMoisture();
+  getMoisture();
   getSunlight();
-  //serverHost();
-  //updateLCD();
+  serverHost();
+  updateLCD();
   
 }
