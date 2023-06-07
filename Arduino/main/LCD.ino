@@ -16,7 +16,7 @@
 //Define Chip Select Pins, and Rotation
 #define TS_CS 21  //7
 #define SD_CS 5
-#define ROTATION 0
+#define ROTATION 2
 uint32_t setUPTime = 0;       // time for next update
 
 int my_Ntemp = 0;
@@ -25,14 +25,14 @@ int oBlock_H = 50;
 int mH = 0, mH2 = 0;
 
 // Assign human-readable names to some common 16-bit color values:
-#define BLACK   0x0000
+#define WHITE   0x0000
 #define BLUE    0x001F
 #define RED     0xF800
 #define GREEN   0x07E0
 #define CYAN    0x07FF
 #define MAGENTA 0xF81F
 #define YELLOW  0xFFE0
-#define WHITE   0xFFFF
+#define BLACK   0xFFFF
 #define DARK_GREY 0x4A89
 #define MEDIUM_GREY 0x8492
 #define LIGHT_GREY 0xD6BA
