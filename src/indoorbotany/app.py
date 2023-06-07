@@ -9,6 +9,9 @@ import toga
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW
 
+#import database query helpers
+import dbutils
+
 import random
 import requests
 from bs4 import BeautifulSoup
@@ -17,42 +20,12 @@ from functools import partial
 import random
 
 """
-TODO: 
--- ADD TUTORIALS FOR AT LEAST 3 DIFFERENT PLANTS INTO THE DATABASE
+TODO:
 -- CHANGE THE PLANT DATA TUTORIAL REDIRECT BUTTON TO DISPLAY TUTORIAL FOR CORRECT PLANT
 -- CREATE QUIZ VIEW & BUTTONS TO REDIRECT
 -- CHANGE PROGRESSBARS TO GRAPHS IN PLANT DATA VIEW
 -- STYLE EACH VIEW BETTER
 """
-
-
-def get_info(plant):
-    return random.randint(0, 100), random.randint(0, 100), random.randint(0, 100), random.randint(0, 100)
-
-
-def get_question():
-    questions = []
-    try:
-        db = mysql.connect(host="sql9.freesqldatabase.com",
-                           user="sql9622826",
-                           password="hQNVN4TgY4",
-                           database="sql9622826",
-                           port=3306)
-        cursor = db.cursor()
-        query = "SELECT COUNT(*) FROM quiz;"
-        cursor.execute(query)
-        total_row = cursor.fetchone()[0]
-        random_list = random.sample(range(1, total_row+1), 3)
-        query = "SELECT * FROM quiz WHERE id IN (" + ','.join(map(str, random_list)) + ")"
-        cursor.execute(query)
-        results = cursor.fetchall()
-        for i in results:
-            questions.append(i)
-        cursor.close()
-        db.close()
-    except:
-        raise ConnectionError('Cannot connect to the database')
-    return questions
 
 
 class IndoorBotany(toga.App):
@@ -71,8 +44,8 @@ class IndoorBotany(toga.App):
         self.show_intro();
         self.main_window = toga.MainWindow(
             title=self.formal_name,
-            position=(350, 0),
-            size=(650, 500)
+            position=(320, 0),
+            size=(850, 650)
         )
         self.main_window.content = self.scroll_box
         self.main_window.show()
@@ -155,6 +128,13 @@ class IndoorBotany(toga.App):
 
     def show_plant_data(self, widget):
 
+        #Call the database query to grab the plant profiles for selection
+        profiles = dbutils.grab_plant_profiles()
+        list_profiles = []
+        for i in profiles:
+            list_profiles.append(i[0])
+
+
         #Create the main box for plant data view
         self.main_box_plant_data = toga.Box(
         style=Pack(direction=COLUMN)
@@ -195,7 +175,7 @@ class IndoorBotany(toga.App):
             style=Pack(padding=(10, 0), font_weight="bold")
         )
         self.plant_view_selection = toga.Selection(
-            items=['Plant 1', 'Plant 2', 'Plant 3', 'Plant 4'],
+            items=list_profiles,
             style=Pack(padding=10),
             on_select=self.update_data
         )
@@ -209,111 +189,167 @@ class IndoorBotany(toga.App):
         self.plant_view_selection_box.add(toga.Label("", style=Pack(flex=1)))
 
 
-        #Create the moisture sensor content & box
-        self.moisture_sensor_label = toga.Label(
-            text="Moisture: ",
-            style=Pack(padding=(10, 10))
+        #Add refresh button to update the plant data
+        self.refresh_button = toga.Button(
+            text="Refresh Data",
+            on_press=self.update_data
         )
+        self.refresh_button_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.refresh_button_box.add(toga.Label("", style=Pack(flex=1)))
+        self.refresh_button_box.add(self.refresh_button)
+        self.refresh_button_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+
         self.moisture_sensor_bar = toga.ProgressBar(
-            max=100, 
+            max=4095, 
             value=0,
-            style=(Pack(padding=(10,10), flex=0))
+            style=(Pack(flex=0, width=350))
         )
         self.moisture_sensor_bar.start()
         self.moisture_sensor_bar.value = 0
         self.moisture_sensor_bar.stop()
         self.moisture_sensor_box = toga.Box(
-            style=Pack(direction=ROW, padding=20, alignment="center")
+            style=Pack(direction=ROW, padding=10, alignment="center")
         )
         #Add the content into the box, and center it
         self.moisture_sensor_box.add(toga.Label("", style=Pack(flex=1)))
-        self.moisture_sensor_box.add(self.moisture_sensor_label)
         self.moisture_sensor_box.add(self.moisture_sensor_bar)
         self.moisture_sensor_box.add(toga.Label("", style=Pack(flex=1)))
 
 
-        #Create the temp sensor content & box
-        self.temp_sensor_label = toga.Label(
-            text="Temperature: ",
-            style=Pack(padding=(10, 10))
+        #Create the moisture sensor content & box
+        self.moisture_sensor_label = toga.Label(
+            text=("Moisture: " + str(self.moisture_sensor_bar.value))
         )
+        self.moisture_sensor_label_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.moisture_sensor_label_box.add(toga.Label("", style=Pack(flex=1)))
+        self.moisture_sensor_label_box.add(self.moisture_sensor_label)
+        self.moisture_sensor_label_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+
         self.temp_sensor_bar = toga.ProgressBar(
-            max=100, 
+            max=40, 
             value=0,
-            style=(Pack(padding=(10, 10), flex=0))
+            style=(Pack(flex=0, width=350))
         )
         self.temp_sensor_bar.start()
         self.temp_sensor_bar.value = 0
         self.temp_sensor_bar.stop()
         self.temp_sensor_box = toga.Box(
-            style=Pack(direction=ROW, padding=20, alignment="center")
+            style=Pack(direction=ROW, padding=10, alignment="center")
         )
         #Add the content into the box, and center it
         self.temp_sensor_box.add(toga.Label("", style=Pack(flex=1)))
-        self.temp_sensor_box.add(self.temp_sensor_label)
         self.temp_sensor_box.add(self.temp_sensor_bar)
         self.temp_sensor_box.add(toga.Label("", style=Pack(flex=1)))
 
 
-        #Create the humidity sensor content & box
-        self.humidity_sensor_label = toga.Label(
-            text="Humidity: ",
-            style=Pack(padding=(10, 10))
+        #Create the temp sensor content & box
+        self.temp_sensor_label = toga.Label(
+            text=("Temperature: " + str(self.temp_sensor_bar.value) + " Celsius")
         )
+        self.temp_sensor_label_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.temp_sensor_label_box.add(toga.Label("", style=Pack(flex=1)))
+        self.temp_sensor_label_box.add(self.temp_sensor_label)
+        self.temp_sensor_label_box.add(toga.Label("", style=Pack(flex=1)))
+
+
         self.humidity_sensor_bar = toga.ProgressBar(
             max=100, 
             value=0,
-            style=(Pack(padding=(10, 10), flex=0))
+            style=(Pack(flex=0, width=350))
         )
         self.humidity_sensor_bar.start()
         self.humidity_sensor_bar.value = 0
         self.humidity_sensor_bar.stop()
         self.humidity_sensor_box = toga.Box(
-            style=Pack(direction=ROW, padding=20, alignment="center")
+            style=Pack(direction=ROW, padding=10, alignment="center")
         )
         #Add the content into the box, and center it
         self.humidity_sensor_box.add(toga.Label("", style=Pack(flex=1)))
-        self.humidity_sensor_box.add(self.humidity_sensor_label)
         self.humidity_sensor_box.add(self.humidity_sensor_bar)
         self.humidity_sensor_box.add(toga.Label("", style=Pack(flex=1)))
 
 
-        #Create the light sensor content & box
-        self.light_sensor_label = toga.Label(
-            text="Sunlight: ",
-            style=Pack(padding=(10, 10))
+        #Create the humidity sensor content & box
+        self.humidity_sensor_label = toga.Label(
+            text=("Humidity: " + str(self.humidity_sensor_bar.value) + "%")
         )
+        self.humidity_sensor_label_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.humidity_sensor_label_box.add(toga.Label("", style=Pack(flex=1)))
+        self.humidity_sensor_label_box.add(self.humidity_sensor_label)
+        self.humidity_sensor_label_box.add(toga.Label("", style=Pack(flex=1)))
+
+
         self.light_sensor_bar = toga.ProgressBar(
-            max=100, 
+            max=25000, 
             value=0,
-            style=(Pack(padding=(10, 10), flex=0))
+            style=(Pack(flex=0, width=350))
         )
         self.light_sensor_bar.start()
         self.light_sensor_bar.value = 0
         self.light_sensor_bar.stop()
         self.light_sensor_box = toga.Box(
-            style=Pack(direction=ROW, padding=20, alignment="center")
+            style=Pack(direction=ROW, padding=10, alignment="center")
         )
         #Add the content into the box, and center it
         self.light_sensor_box.add(toga.Label("", style=Pack(flex=1)))
-        self.light_sensor_box.add(self.light_sensor_label)
         self.light_sensor_box.add(self.light_sensor_bar)
         self.light_sensor_box.add(toga.Label("", style=Pack(flex=1)))
 
 
-        #Create the plant tutorial button content & box
-        self.plant_data_tutorial_button = toga.Button(
-            text="Review the tutorial!",
-            style=Pack(padding=10),
-            on_press=self.show_tutorial
+        #Create the light sensor content & box
+        self.light_sensor_label = toga.Label(
+            text=("Sunlight: " + str(self.light_sensor_bar.value))
         )
-        self.plant_data_tutorial_button_box = toga.Box(
+        self.light_sensor_label_box = toga.Box(
             style=Pack(direction=ROW, padding=10, alignment="center")
         )
         #Add the content into the box, and center it
-        self.plant_data_tutorial_button_box.add(toga.Label("", style=Pack(flex=1)))
-        self.plant_data_tutorial_button_box.add(self.plant_data_tutorial_button)
-        self.plant_data_tutorial_button_box.add(toga.Label("", style=Pack(flex=1)))
+        self.light_sensor_label_box.add(toga.Label("", style=Pack(flex=1)))
+        self.light_sensor_label_box.add(self.light_sensor_label)
+        self.light_sensor_label_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+        #Create the quiz button content & box
+        self.plant_view_quiz_button = toga.Button(
+            text="Take the quiz!",
+            style=Pack(padding=10),
+            on_press=self.show_quiz
+        )
+        self.plant_view_quiz_button_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_view_quiz_button_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_view_quiz_button_box.add(self.plant_view_quiz_button)
+        self.plant_view_quiz_button_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+        #Add the different images to show plant health based on data
+        self.image_thriving_plant = toga.Image('resources/thriving_plant.png')
+        self.image_healthy_plant = toga.Image('resources/healthy_plant.png')
+        self.image_dying_plant = toga.Image('resources/dying_plant.png')
+
+        self.image_view_plant_health = toga.ImageView(
+            image=self.image_thriving_plant,
+            style=Pack(padding=10, height=225)
+        )
+
 
 
         #Create the back button content & box
@@ -335,11 +371,17 @@ class IndoorBotany(toga.App):
         self.main_box_plant_data.add(self.plant_view_title_box)
         self.main_box_plant_data.add(self.plant_view_subheading_box)
         self.main_box_plant_data.add(self.plant_view_selection_box)
+        self.main_box_plant_data.add(self.refresh_button_box)
+        self.main_box_plant_data.add(self.moisture_sensor_label_box)
         self.main_box_plant_data.add(self.moisture_sensor_box)
+        self.main_box_plant_data.add(self.temp_sensor_label_box)
         self.main_box_plant_data.add(self.temp_sensor_box)
+        self.main_box_plant_data.add(self.humidity_sensor_label_box)
         self.main_box_plant_data.add(self.humidity_sensor_box)
+        self.main_box_plant_data.add(self.light_sensor_label_box)
         self.main_box_plant_data.add(self.light_sensor_box)
-        self.main_box_plant_data.add(self.plant_data_tutorial_button_box)
+        self.main_box_plant_data.add(self.plant_view_quiz_button_box)
+        self.main_box_plant_data.add(self.image_view_plant_health)
         self.main_box_plant_data.add(self.back_button_box_1)
 
         self.scroll_box.content = self.main_box_plant_data
@@ -351,6 +393,14 @@ class IndoorBotany(toga.App):
     #########################################################
 
     def show_plant_creation(self, widget):
+
+
+        #Call the database query to grab the different plants to choose from
+        plants = dbutils.grab_plants()
+        list_plants= []
+        for i in plants:
+            list_plants.append(i[0])
+
 
         #Create the main box for plant creation view
         self.main_box_plant_creation = toga.Box(
@@ -378,9 +428,8 @@ class IndoorBotany(toga.App):
             style=Pack(padding=(10, 0), font_weight="bold")
         )
         self.plant_creation_selection = toga.Selection(
-            items=['Cactus','Snake plant','Succulent','Pothos','Peace Lily','Spider plant','ZZ plant'],
+            items=list_plants,
             style=Pack(padding=10)
-            #on_select=self.
         )
         self.plant_creation_selection_box = toga.Box(
             style=Pack(direction=ROW, padding=10, alignment="center")
@@ -429,7 +478,6 @@ class IndoorBotany(toga.App):
         #Create the back button content & box
         self.back_button_2 = toga.Button(
             text="<-- Go Back",
-            style=Pack(padding=10),
             on_press=self.show_intro
         )
         self.back_button_box_2 = toga.Box(
@@ -458,6 +506,38 @@ class IndoorBotany(toga.App):
 
     def show_tutorial(self, widget):
         
+
+        #Create the images
+        self.flf_image = toga.Image('resources/flf_plant.jpg')
+        self.snakeplant_image = toga.Image('resources/snakeplant.jpg')
+        self.spiderplant_image = toga.Image('resources/spiderplant.jpg')
+        self.plant_image_view = toga.ImageView(
+            style=Pack(padding=10, height=225)
+        )
+
+        if self.plant_creation_selection.value == 'Fiddle Leaf Fig':
+            self.plant_image_view.image = self.flf_image
+        if self.plant_creation_selection.value == 'Snake Plant':
+            self.plant_image_view.image = self.snakeplant_image
+        if self.plant_creation_selection.value == 'Spider Plant':
+            self.plant_image_view.image = self.spiderplant_image
+
+        self.watering_image_view = toga.ImageView(
+            image='resources/watering_plant.jpg',
+            style=Pack(padding=10, height=225)
+        )
+        self.sunlight_image_view = toga.ImageView(
+            image='resources/sunlight_plant.jpg',
+            style=Pack(padding=10, height=225)
+        )
+
+        #Call the SQL query to create a new plant profile
+        dbutils.create_plant_profile(self.plant_creation_name.value, self.plant_creation_selection.value)
+
+        #Call the SQL query to show the correct tutorial based on the chosen plant
+        tutorial_content = dbutils.grab_plant_tutorial(self.plant_creation_selection.value)
+
+
         #Create the main box for the tutorial content
         self.main_box_plant_tutorial = toga.Box(
             style=Pack(direction=COLUMN)
@@ -466,7 +546,7 @@ class IndoorBotany(toga.App):
 
         #Create the title content & box
         self.plant_tutorial_title = toga.Label(
-            text="You've successfully created your new " + str(self.plant_creation_selection.value).lower() + " plant!",
+            text="You've successfully created your new " + str(self.plant_creation_selection.value).lower() + "!",
             style=Pack(font_size=24)
         )
         self.plant_tutorial_title_box = toga.Box(
@@ -492,19 +572,128 @@ class IndoorBotany(toga.App):
         self.plant_tutorial_subheading_box.add(toga.Label("", style=Pack(flex=1)))
 
 
-        #Create the quiz button content & box
-        self.plant_tutorial_quiz_button = toga.Button(
-            text="Take the quiz!",
-            style=Pack(padding=10),
-            on_press=self.show_quiz
+
+        #Create the tutorial content content & boxes
+        self.plant_tutorial_general_info_header = toga.Label(
+            text="General Info",
+            style=Pack(font_size=15)
         )
-        self.plant_tutorial_quiz_button_box = toga.Box(
+        self.plant_tutorial_general_info_header_box = toga.Box(
             style=Pack(direction=ROW, padding=10, alignment="center")
         )
         #Add the content into the box, and center it
-        self.plant_tutorial_quiz_button_box.add(toga.Label("", style=Pack(flex=1)))
-        self.plant_tutorial_quiz_button_box.add(self.plant_tutorial_quiz_button)
-        self.plant_tutorial_quiz_button_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_tutorial_general_info_header_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_tutorial_general_info_header_box.add(self.plant_tutorial_general_info_header)
+        self.plant_tutorial_general_info_header_box.add(toga.Label("", style=Pack(flex=1)))
+
+        self.plant_tutorial_general_info = toga.Label(
+            text=tutorial_content[0][0],
+            style=Pack(font_size=12)
+        )
+        self.plant_tutorial_general_info_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_tutorial_general_info_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_tutorial_general_info_box.add(self.plant_tutorial_general_info)
+        self.plant_tutorial_general_info_box.add(toga.Label("", style=Pack(flex=1)))
+
+        self.plant_tutorial_watering_header = toga.Label(
+            text="Watering",
+            style=Pack(font_size=15)
+        )
+        self.plant_tutorial_watering_header_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_tutorial_watering_header_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_tutorial_watering_header_box.add(self.plant_tutorial_watering_header)
+        self.plant_tutorial_watering_header_box.add(toga.Label("", style=Pack(flex=1)))
+
+        self.plant_tutorial_watering = toga.Label(
+            text=tutorial_content[0][1],
+            style=Pack(font_size=12)
+        )
+        self.plant_tutorial_watering_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_tutorial_watering_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_tutorial_watering_box.add(self.plant_tutorial_watering)
+        self.plant_tutorial_watering_box.add(toga.Label("", style=Pack(flex=1)))
+
+        self.plant_tutorial_sunlight_header = toga.Label(
+            text="Sunlight",
+            style=Pack(font_size=15)
+        )
+        self.plant_tutorial_sunlight_header_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_tutorial_sunlight_header_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_tutorial_sunlight_header_box.add(self.plant_tutorial_sunlight_header)
+        self.plant_tutorial_sunlight_header_box.add(toga.Label("", style=Pack(flex=1)))
+
+        self.plant_tutorial_sunlight = toga.Label(
+            text=tutorial_content[0][2],
+            style=Pack(font_size=12)
+        )
+        self.plant_tutorial_sunlight_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_tutorial_sunlight_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_tutorial_sunlight_box.add(self.plant_tutorial_sunlight)
+        self.plant_tutorial_sunlight_box.add(toga.Label("", style=Pack(flex=1)))
+
+        self.plant_tutorial_climate_header = toga.Label(
+            text="Climate",
+            style=Pack(font_size=15)
+        )
+        self.plant_tutorial_climate_header_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_tutorial_climate_header_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_tutorial_climate_header_box.add(self.plant_tutorial_climate_header)
+        self.plant_tutorial_climate_header_box.add(toga.Label("", style=Pack(flex=1)))
+
+        self.plant_tutorial_climate = toga.Label(
+            text=tutorial_content[0][3],
+            style=Pack(font_size=12)
+        )
+        self.plant_tutorial_climate_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_tutorial_climate_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_tutorial_climate_box.add(self.plant_tutorial_climate)
+        self.plant_tutorial_climate_box.add(toga.Label("", style=Pack(flex=1)))
+
+        self.plant_tutorial_summary_header = toga.Label(
+            text="Summary",
+            style=Pack(font_size=15)
+        )
+        self.plant_tutorial_summary_header_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_tutorial_summary_header_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_tutorial_summary_header_box.add(self.plant_tutorial_summary_header)
+        self.plant_tutorial_summary_header_box.add(toga.Label("", style=Pack(flex=1)))
+
+        self.plant_tutorial_summary = toga.Label(
+            text=tutorial_content[0][4],
+            style=Pack(font_size=12)
+        )
+        self.plant_tutorial_summary_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_tutorial_summary_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_tutorial_summary_box.add(self.plant_tutorial_summary)
+        self.plant_tutorial_summary_box.add(toga.Label("", style=Pack(flex=1)))
+
 
 
         #Create the plant data button content & box
@@ -540,7 +729,19 @@ class IndoorBotany(toga.App):
         #Add the separate boxes to the main box
         self.main_box_plant_tutorial.add(self.plant_tutorial_title_box)
         self.main_box_plant_tutorial.add(self.plant_tutorial_subheading_box)
-        self.main_box_plant_tutorial.add(self.plant_tutorial_quiz_button_box)
+        self.main_box_plant_tutorial.add(self.plant_tutorial_general_info_header_box)
+        self.main_box_plant_tutorial.add(self.plant_image_view)
+        self.main_box_plant_tutorial.add(self.plant_tutorial_general_info_box)
+        self.main_box_plant_tutorial.add(self.plant_tutorial_watering_header_box)
+        self.main_box_plant_tutorial.add(self.watering_image_view)
+        self.main_box_plant_tutorial.add(self.plant_tutorial_watering_box)
+        self.main_box_plant_tutorial.add(self.plant_tutorial_sunlight_header_box)
+        self.main_box_plant_tutorial.add(self.sunlight_image_view)
+        self.main_box_plant_tutorial.add(self.plant_tutorial_sunlight_box)
+        self.main_box_plant_tutorial.add(self.plant_tutorial_climate_header_box)
+        self.main_box_plant_tutorial.add(self.plant_tutorial_climate_box)
+        self.main_box_plant_tutorial.add(self.plant_tutorial_summary_header_box)
+        self.main_box_plant_tutorial.add(self.plant_tutorial_summary_box)
         self.main_box_plant_tutorial.add(self.plant_tutorial_submit_button_box)
         self.main_box_plant_tutorial.add(self.back_button_box_3)
 
@@ -553,6 +754,7 @@ class IndoorBotany(toga.App):
     #########################################################
 
     def show_quiz(self, widget):
+
 
         #Create the main box for the tutorial content
         self.main_box_plant_quiz = toga.Box(
@@ -574,9 +776,10 @@ class IndoorBotany(toga.App):
         self.plant_quiz_title_box.add(toga.Label("", style=Pack(flex=1)))
 
 
+        plant_name = dbutils.grab_plant_from_profile_name(self.plant_view_selection.value)[0]
         #Create the subheading content & box
         self.plant_quiz_subheading = toga.Label(
-            text="Take the following quiz on the " + str(self.plant_creation_selection.value).lower() + " to test your knowledge",
+            text="Take the following quiz on the " + plant_name.lower() + "!",
             style=Pack(font_size=15)
         )
         self.plant_quiz_subheading_box = toga.Box(
@@ -586,13 +789,204 @@ class IndoorBotany(toga.App):
         self.plant_quiz_subheading_box.add(toga.Label("", style=Pack(flex=1)))
         self.plant_quiz_subheading_box.add(self.plant_quiz_subheading)
         self.plant_quiz_subheading_box.add(toga.Label("", style=Pack(flex=1)))
+        
+        
+
+
+
+        #Get the questions and answer choices for the quiz
+        full_questions = dbutils.get_question(self.plant_view_selection.value)
+
+        questions = []
+        option1 = []
+        option2 = []
+        option3 = []
+        self.choice = []
+        self.questions_box = []
+        self.option_box = []
+
+        self.quiz_box = toga.Box(
+            style=Pack(direction=COLUMN, padding=5, flex=1)
+        )
+
+        self.answers = [x[-2] for x in full_questions]
+        self.user_ans = [''] * len(full_questions)
+
+        for idx, question in enumerate(full_questions):
+            questions.append(toga.Label(
+                question[1],
+                style=Pack(padding=0)
+            )
+            )
+            option1.append(toga.Button(
+                question[2],
+                on_press=partial(self.change_answer, idx, question[2]),
+                style=Pack(padding=5),
+            )
+            )
+            option2.append(toga.Button(
+                question[3],
+                on_press=partial(self.change_answer, idx, question[3]),
+                style=Pack(padding=5),
+            )
+            )
+            option3.append(toga.Button(
+                question[4],
+                on_press=partial(self.change_answer, idx, question[4]),
+                style=Pack(padding=5),
+            )
+            )
+            self.choice.append(toga.Label(
+                'Your answer: ',
+                style=Pack(padding=5, padding_bottom=25),
+            )
+            )
+
+
+
+        #Create the question content & box
+        self.plant_quiz_question1 = toga.Label(
+            text="Question 1: ",
+            style=Pack(font_size=15)
+        )
+        self.plant_quiz_question1_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_quiz_question1_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_quiz_question1_box.add(self.plant_quiz_question1)
+        self.plant_quiz_question1_box.add(questions[0])
+        self.plant_quiz_question1_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+        #Create the answer choices content & box
+        self.plant_quiz_options1_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_quiz_options1_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_quiz_options1_box.add(option1[0])
+        self.plant_quiz_options1_box.add(option2[0])
+        self.plant_quiz_options1_box.add(option3[0])
+        self.plant_quiz_options1_box.add(toga.Label("", style=Pack(flex=1)))
+
+        
+        #Create the answer selection content & box
+        self.plant_quiz_choice1_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_quiz_choice1_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_quiz_choice1_box.add(self.choice[0])
+        self.plant_quiz_choice1_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+        #Create the question content & box
+        self.plant_quiz_question2 = toga.Label(
+            text="Question 2: ",
+            style=Pack(font_size=15)
+        )
+        self.plant_quiz_question2_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_quiz_question2_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_quiz_question2_box.add(self.plant_quiz_question2)
+        self.plant_quiz_question2_box.add(questions[1])
+        self.plant_quiz_question2_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+        #Create the answer choices content & box
+        self.plant_quiz_options2_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_quiz_options2_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_quiz_options2_box.add(option1[1])
+        self.plant_quiz_options2_box.add(option2[1])
+        self.plant_quiz_options2_box.add(option3[1])
+        self.plant_quiz_options2_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+        #Create the answer selection content & box
+        self.plant_quiz_choice2_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_quiz_choice2_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_quiz_choice2_box.add(self.choice[1])
+        self.plant_quiz_choice2_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+        #Create the question content & box
+        self.plant_quiz_question3 = toga.Label(
+            text="Question 3: ",
+            style=Pack(font_size=15)
+        )
+        self.plant_quiz_question3_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_quiz_question3_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_quiz_question3_box.add(self.plant_quiz_question3)
+        self.plant_quiz_question3_box.add(questions[2])
+        self.plant_quiz_question3_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+        #Create the answer choices content & box
+        self.plant_quiz_options3_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_quiz_options3_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_quiz_options3_box.add(option1[2])
+        self.plant_quiz_options3_box.add(option2[2])
+        self.plant_quiz_options3_box.add(option3[2])
+        self.plant_quiz_options3_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+        #Create the answer selection content & box
+        self.plant_quiz_options3_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_quiz_options3_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_quiz_options3_box.add(option1[2])
+        self.plant_quiz_options3_box.add(option2[2])
+        self.plant_quiz_options3_box.add(option3[2])
+        self.plant_quiz_options3_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+        #Create the answer selection content & box
+        self.plant_quiz_choice3_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.plant_quiz_choice3_box.add(toga.Label("", style=Pack(flex=1)))
+        self.plant_quiz_choice3_box.add(self.choice[2])
+        self.plant_quiz_choice3_box.add(toga.Label("", style=Pack(flex=1)))
+
+
+        #Create the submit button
+        self.return_button = toga.Button(
+            text="Submit",
+            on_press=self.return_main,
+            style=Pack(padding=5, padding_top=20)
+        )
+        self.return_button_box = toga.Box(
+            style=Pack(direction=ROW, padding=10, alignment="center")
+        )
+        #Add the content into the box, and center it
+        self.return_button_box.add(toga.Label("", style=Pack(flex=1)))
+        self.return_button_box.add(self.return_button)
+        self.return_button_box.add(toga.Label("", style=Pack(flex=1)))
 
 
         #Create the back button content & box
         self.back_button_4 = toga.Button(
             text="<-- Go Back",
             style=Pack(padding=10),
-            on_press=self.show_tutorial
+            on_press=self.show_plant_data
         )
         self.back_button_box_4 = toga.Box(
             style=Pack(direction=ROW, padding=10, alignment="center")
@@ -603,73 +997,61 @@ class IndoorBotany(toga.App):
         self.back_button_box_4.add(toga.Label("", style=Pack(flex=1)))
 
 
+
+
         #Add the separate boxes to the main box
         self.main_box_plant_quiz.add(self.plant_quiz_title_box)
         self.main_box_plant_quiz.add(self.plant_quiz_subheading_box)
+        self.main_box_plant_quiz.add(self.plant_quiz_question1_box)
+        self.main_box_plant_quiz.add(self.plant_quiz_options1_box)
+        self.main_box_plant_quiz.add(self.plant_quiz_choice1_box)
+        self.main_box_plant_quiz.add(self.plant_quiz_question2_box)
+        self.main_box_plant_quiz.add(self.plant_quiz_options2_box)
+        self.main_box_plant_quiz.add(self.plant_quiz_choice2_box)
+        self.main_box_plant_quiz.add(self.plant_quiz_question3_box)
+        self.main_box_plant_quiz.add(self.plant_quiz_options3_box)
+        self.main_box_plant_quiz.add(self.plant_quiz_choice3_box)
+        self.main_box_plant_quiz.add(self.return_button_box)
         self.main_box_plant_quiz.add(self.back_button_box_4)
 
         self.scroll_box.content = self.main_box_plant_quiz
 
 
 
+    #########################################################
+    #      UPDATE THE USERS ANSWER FOR A QUIZ QUESTION      #
+    #########################################################
+        
+    def change_answer(self, id, value, widget=None):
+        
+        
+        assert isinstance(id, int)
+        self.choice[id].text = 'Your answer: {}'.format(value)
+        self.user_ans[id] = value
 
 
 
+    #########################################################
+    #     UPDATE PLANT DATA VIEW BASED ON PLANT PROFILE     #
+    #########################################################
 
 
-
-        questions = get_question()
-        q, option1, option2, option3, self.choice, self.q_box = [], [], [], [], [], []
-        self.quiz_box = toga.Box(style=Pack(direction=COLUMN, padding=5, flex=1))
-        self.answers = [x[-1] for x in questions]
-        self.user_ans = [''] * len(questions)
-        # print(self.answers, self.user_ans)
-
-        for idx, question in enumerate(questions):
-            q.append(toga.Label(
-                question[1],
-                style=Pack(padding=(5, 5), padding_top=20)
+    def return_main(self, widget):
+        cnt = 0
+        for x, y in zip(self.answers, self.user_ans):
+            if x == y:
+                cnt += 1
+        if cnt > 1:
+            self.main_window.info_dialog(
+                ':)',
+                'You got {}/3 correct'.format(int(cnt)),
             )
+        else:
+            self.main_window.info_dialog(
+                ':(',
+                'You got {}/3 correct'.format(int(cnt)),
             )
-            option1.append(toga.Button(
-                question[2],
-                on_press=partial(self.change_answer, idx, 'A'),
-                style=Pack(padding=5),
-            )
-            )
-            option2.append(toga.Button(
-                question[3],
-                on_press=partial(self.change_answer, idx, 'B'),
-                style=Pack(padding=5),
-            )
-            )
-            option3.append(toga.Button(
-                question[4],
-                on_press=partial(self.change_answer, idx, 'C'),
-                style=Pack(padding=5),
-            )
-            )
-            self.choice.append(toga.Label(
-                'Your answer: ',
-                style=Pack(padding=5),
-            )
-            )
-            self.q_box.append(toga.Box(style=Pack(direction=COLUMN, padding=5, flex=1),
-                                       children=[q[-1], option1[-1], option2[-1], option3[-1], self.choice[-1]]))
-
-        return_button = toga.Button(
-            'Submit',
-            on_press=self.return_main,
-            style=Pack(padding=5, padding_top=20)
-        )
-
-        for item in self.q_box:
-            self.quiz_box.add(item)
-        self.quiz_box.add(return_button)
-        self.quiz_scroll_box = toga.ScrollContainer(content=self.quiz_box)
-        self.main_window.content = self.quiz_scroll_box
-        # self.main_window.content = self.quiz_box
-
+        
 
 
     #########################################################
@@ -678,26 +1060,44 @@ class IndoorBotany(toga.App):
 
     def update_data(self, widget):
 
-        #CHANGE THE DATA SHOWN BASED ON PLANT CHOSEN
-        moisture, temp, humidity, light = get_info(self.plant_view_selection.value)
-        print(moisture, temp)
+        #Call the database query to grab the plant profiles & their data
+        data = dbutils.grab_plant_data(self.plant_view_selection.value)
+        moisture = data[0][1]
+        temp = data[0][2]
+        humidity = data[0][3]
+        light = data[0][4]
 
-        self.moisture_sensor_bar.value = 0
+
+        self.moisture_sensor_label.text = "Moisture: " + str(moisture)
+        self.temp_sensor_label.text =  "Temperature: " + str(temp) + " Celsius"
+        self.humidity_sensor_label.text =  "Humidity: " + str(humidity) + "%"
+        self.light_sensor_label.text = "Sunlight: " + str(light)
+
+        if light > 18000:
+            self.image_view_plant_health.image = self.image_dying_plant
+        elif light < 9000:
+            self.image_view_plant_health.image = self.image_healthy_plant
+        else:
+            self.image_view_plant_health.image = self.image_thriving_plant
+        yield 0.1
+
+
+        #self.moisture_sensor_bar.value = 0
         self.moisture_sensor_bar.start()
         self.moisture_sensor_bar.value = moisture
         self.moisture_sensor_bar.stop()
 
-        self.temp_sensor_bar.value = 0
+        #self.temp_sensor_bar.value = 0
         self.temp_sensor_bar.start()
         self.temp_sensor_bar.value = temp
         self.temp_sensor_bar.stop()
 
-        self.humidity_sensor_bar.value = 0
+        #self.humidity_sensor_bar.value = 0
         self.humidity_sensor_bar.start()
         self.humidity_sensor_bar.value = humidity
         self.humidity_sensor_bar.stop()
 
-        self.light_sensor_bar.value = 0
+        #self.light_sensor_bar.value = 0
         self.light_sensor_bar.start()
         self.light_sensor_bar.value = light
         self.light_sensor_bar.stop()
@@ -705,128 +1105,5 @@ class IndoorBotany(toga.App):
 
 
 
-    def change_answer(self, id, value, widget=None):
-        assert isinstance(id, int)
-        # print(id, type(self.choice), bool(self.choice))
-        # for idx, i in enumerate(self.choice):
-        #     print(idx, i.text)
-        self.choice[id].text = 'Your answer: {}'.format(value)
-        self.user_ans[id] = value
-        # print(self.user_ans)
-        self.main_window.content = self.quiz_scroll_box
-
-
-    def return_main(self, widget):
-        cnt = 0
-        for x, y in zip(self.answers, self.user_ans):
-            if x == y:
-                cnt += 1
-        if cnt > 1:
-            self.main_window.info_dialog(
-                ':)',
-                'You got {}/3 correct'.format(int(cnt)),
-            )
-        else:
-            self.main_window.info_dialog(
-                ':(',
-                'You got {}/3 correct'.format(int(cnt)),
-            )
-        self.main_window.content = self.scroll_box
-
-
-
 def main():
     return IndoorBotany()
-
-
-    """
-        self.plant_img = toga.Image('resources/indoorbotany.png')
-        self.plant_img2 = toga.Image('resources/indoorbotany_2.png')
-
-        self.imgview = toga.ImageView(self.plant_img, style=Pack(padding=10, padding_top=20))
-        self.imgview.style.update(height=256)
-
-        self.web = toga.WebView(url='https://google.com', style=Pack(flex=1, padding=10))
-
-
-
-    def take_quiz(self, widget):
-        questions = get_question()
-        q, option1, option2, option3, self.choice, self.q_box = [], [], [], [], [], []
-        self.quiz_box = toga.Box(style=Pack(direction=COLUMN, padding=5, flex=1))
-        self.answers = [x[-1] for x in questions]
-        self.user_ans = [''] * len(questions)
-        # print(self.answers, self.user_ans)
-
-        for idx, question in enumerate(questions):
-            q.append(toga.Label(
-                question[1],
-                style=Pack(padding=(5, 5), padding_top=20)
-            )
-            )
-            option1.append(toga.Button(
-                question[2],
-                on_press=partial(self.change_answer, idx, 'A'),
-                style=Pack(padding=5),
-            )
-            )
-            option2.append(toga.Button(
-                question[3],
-                on_press=partial(self.change_answer, idx, 'B'),
-                style=Pack(padding=5),
-            )
-            )
-            option3.append(toga.Button(
-                question[4],
-                on_press=partial(self.change_answer, idx, 'C'),
-                style=Pack(padding=5),
-            )
-            )
-            self.choice.append(toga.Label(
-                'Your answer: ',
-                style=Pack(padding=5),
-            )
-            )
-            self.q_box.append(toga.Box(style=Pack(direction=COLUMN, padding=5, flex=1),
-                                       children=[q[-1], option1[-1], option2[-1], option3[-1], self.choice[-1]]))
-
-        return_button = toga.Button(
-            'Submit',
-            on_press=self.return_main,
-            style=Pack(padding=5, padding_top=20)
-        )
-
-        for item in self.q_box:
-            self.quiz_box.add(item)
-        self.quiz_box.add(return_button)
-        self.quiz_scroll_box = toga.ScrollContainer(content=self.quiz_box)
-        self.main_window.content = self.quiz_scroll_box
-        # self.main_window.content = self.quiz_box
-
-    def change_answer(self, id, value, widget=None):
-        assert isinstance(id, int)
-        # print(id, type(self.choice), bool(self.choice))
-        # for idx, i in enumerate(self.choice):
-        #     print(idx, i.text)
-        self.choice[id].text = 'Your answer: {}'.format(value)
-        self.user_ans[id] = value
-        # print(self.user_ans)
-        self.main_window.content = self.quiz_scroll_box
-
-    def return_main(self, widget):
-        cnt = 0
-        for x, y in zip(self.answers, self.user_ans):
-            if x == y:
-                cnt += 1
-        if cnt > 1:
-            self.main_window.info_dialog(
-                ':)',
-                'You got {}/3 correct'.format(int(cnt)),
-            )
-        else:
-            self.main_window.info_dialog(
-                ':(',
-                'You got {}/3 correct'.format(int(cnt)),
-            )
-        self.main_window.content = self.scroll_box
-    """
