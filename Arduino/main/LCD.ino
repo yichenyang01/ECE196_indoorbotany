@@ -82,7 +82,7 @@ void updateText(){
     int humidity_meter = map(humid, 0, 100, 0, 200);
     int temperature_meter = map(temperature, -40, 80, 0, 200);
     int moisture_meter = map(moisture, 0, 4095, 0, 200);
-    int sunlight_meter = map(sunlight, 0, 30000, 0, 200);
+    int sunlight_meter = map(sunlight, 0, 600, 0, 200);
   
     tft.fillScreen(WHITE);
     tft.setCursor(0, 0);
